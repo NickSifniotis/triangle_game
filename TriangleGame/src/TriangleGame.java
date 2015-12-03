@@ -1,4 +1,4 @@
-import GameEngine.BoardState;
+import GameEngine.BoardUtils;
 
 /**
  * Created by nsifniotis on 3/12/15.
@@ -7,17 +7,8 @@ public class TriangleGame
 {
     public static void main(String[] args)
     {
-        BoardState bs = new BoardState();
-
-        bs.state = bs.get_best_state((short)4235);
-        bs.Display();
-        bs.state = bs.get_best_state((short)14);
-        bs.Display();
-        bs.state = bs.get_best_state((short)537);
-        bs.Display();
-        bs.state = bs.get_best_state((short)16384);
-        bs.Display();
-
-
+        BoardUtils.Display(4235);
+        BoardUtils.Display(BoardUtils.Normalise(4235));
+        BoardUtils.Display(BoardUtils.Rotate(4235));
     }
 }

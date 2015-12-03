@@ -1,35 +1,35 @@
 package GameEngine;
 
 /**
- * Created by nsifniotis on 3/12/15.
+ * BoardUtils - This class contains a number of useful static methods for manipulating game board state
+ * bitmaps within the TriangleGame application.
+ *
+ * @author Nick Sifniotis
+ * @version 1.1.0
+ * @since 03/12/2015
  */
-public class BoardState
+public class BoardUtils
 {
-    public short state;
-
-    public void Display()
+    public static void Display(int state)
     {
-        int position = 0;
         for (int i = 0; i < 5; i ++)
         {
             for (int j = 0; j < (5 - i); j ++)
                 System.out.print(" ");
 
             for (int j = 0; j < i + 1; j ++)
-            {
-                System.out.print(get_value(i, j) ? "* " : ". ");
-                position ++;
-            }
+                System.out.print(Get(state, CoordinateToBit(i, j)) ? "* " : ". ");
+
             System.out.println();
         }
 
-        System.out.println();
-        for (int i = 0; i < 15; i ++)
-        {
-            System.out.print(get_value(this.state, i) ? "1" : "0");
-            if (i % 5 == 4)
-                System.out.print(".");
-        }
+//        System.out.println();
+//        for (int i = 0; i < 15; i ++)
+//        {
+//            System.out.print(Get(state, i) ? "1" : "0");
+//            if (i % 5 == 4)
+//                System.out.print(".");
+//        }
 
         System.out.println("\n");
     }
@@ -41,22 +41,22 @@ public class BoardState
      *
      * Every state is uniquely identified by this lowest value.
      *
-     * @param state
-     * @return
+     * @param state The state to normalise.
+     * @return The normalised (lowest) equivalent state for the one supplied.
      */
-    public short get_best_state(short state)
+    public static int Normalise(int state)
     {
-        short res = state;
-        if (reflect_state(state) < res)
-            res = reflect_state(state);
+        int res = state;
+        if (Reflect(state) < res)
+            res = Reflect(state);
 
         for (int i = 0; i < 2; i ++)
         {
-            state = rotate_state(state);
+            state = Rotate(state);
             if (state < res)
                 res = state;
-            if (reflect_state(state) < res)
-                res = reflect_state(state);
+            if (Reflect(state) < res)
+                res = Reflect(state);
         }
 
         return res;
@@ -64,53 +64,27 @@ public class BoardState
 
 
     /**
-     * Returns the two rotations of this board; one clockwise, the other anticlockwise.
-     *
-     * @return
-     */
-    public BoardState[] Rotations()
-    {
-        BoardState[] res = new BoardState[2];
-        res[0] = new BoardState();
-        res[1] = new BoardState();
-
-        res[0].state = rotate_state(this.state);
-        res[1].state = rotate_state(res[0].state);
-
-        return res;
-    }
-
-
-    public BoardState Reflection()
-    {
-        BoardState res = new BoardState();
-        res.state = reflect_state(this.state);
-        return res;
-    }
-
-
-    /**
      * Performs the bitwise rotation of the given state.
      *
-     * @param state
-     * @return
+     * @param state The state to transform.
+     * @return The transformed state.
      */
-    public short rotate_state(short state)
+    public static int Rotate(int state)
     {
         int one_corner = (state & 0x002F) << 10;
         int working_state = state >>> 5;
 
-        return (short)(one_corner + working_state);
+        return one_corner + working_state;
     }
 
 
     /**
-     * Reflect the bitmap
+     * Reflect the given board state.
      *
-     * @param state
-     * @return
+     * @param state The state to reflect.
+     * @return The reflected state.
      */
-    public short reflect_state(short state)
+    public static int Reflect(int state)
     {
         // pretty crappy way to do it eh
         state = swap_bits(state, 1, 3);
@@ -124,12 +98,12 @@ public class BoardState
     }
 
 
-    private short swap_bits(short state, int b1, int b2)
+    private static int swap_bits(int state, int b1, int b2)
     {
-        boolean v1 = get_value(state, b1);
-        boolean v2 = get_value(state, b2);
-        state = set_value(state, b1, v2);
-        state = set_value(state, b2, v1);
+        boolean v1 = Get(state, b1);
+        boolean v2 = Get(state, b2);
+        state = Set(state, b1, v2);
+        state = Set(state, b2, v1);
 
         return state;
     }
@@ -137,13 +111,12 @@ public class BoardState
 
     /**
      * Convert from (x, y) coordinates to positions on the bitmap.
-     * Yes, it's a pretty silly way to do it.
      *
-     * @param line
-     * @param column
-     * @return
+     * @param line The line (virtual ycoordinate) to get.
+     * @param column The column (virtual xcoordinate) to get.
+     * @return The bit number on the bitmap.
      */
-    private boolean get_value(int line, int column)
+    private static int CoordinateToBit(int line, int column)
     {
         int location = 0;
 
@@ -197,16 +170,17 @@ public class BoardState
                     break;
             }
 
-        return get_value(this.state, location);
+        return location;
     }
 
 
     /**
      * Returns the state of the given bit within the bitmap.
-     * @param location
-     * @return
+     *
+     * @param location The bit to get the state of.
+     * @return True if the bit is set, False if the bit is not set.
      */
-    private boolean get_value(short state, int location)
+    private static boolean Get(int state, int location)
     {
         return ((state & (int)Math.pow(2, location)) != 0);
     }
@@ -215,15 +189,15 @@ public class BoardState
     /**
      * Sets the bit at the given location.
      *
-     * @param location
-     * @param value
+     * @param location The bit within the bitmap to set.
+     * @param value The value to set it to.
      */
-    private short set_value(short state, int location, boolean value)
+    private static int Set(int state, int location, boolean value)
     {
         if (value)
-            state = (short)(state | (short)Math.pow(2, location));
+            state = (state | (int)Math.pow(2, location));
         else
-            state = (short)(state & ~((short)Math.pow(2, location)));
+            state = (state & ~((int)Math.pow(2, location)));
 
         return state;
     }
