@@ -1,5 +1,6 @@
 package GameEngine;
 
+
 /**
  * BoardUtils - This class contains a number of useful static methods for manipulating game board state
  * bitmaps within the TriangleGame application.
@@ -111,6 +112,7 @@ public class BoardUtils
 
     /**
      * Convert from (x, y) coordinates to positions on the bitmap.
+     * Returns -1 if the supplied coordinates do not correspond to a legal location.
      *
      * @param line The line (virtual ycoordinate) to get.
      * @param column The column (virtual xcoordinate) to get.
@@ -118,10 +120,17 @@ public class BoardUtils
      */
     private static int CoordinateToBit(int line, int column)
     {
-        int location = 0;
+        int location = -1;
 
-        if (line == 1)
-            location = (column == 0) ? 1 : 3;
+        if (line == 0 && column == 0)
+            location = 0;
+        else if (line == 1)
+        {
+            if (column == 0)
+                location = 1;
+            else if (column == 1)
+                location = 3;
+        }
         else if (line == 2)
             switch (column)
             {
@@ -166,11 +175,74 @@ public class BoardUtils
                     location = 13;
                     break;
                 case 4:
-                    location = 11;
+                    location = 10;
                     break;
             }
 
         return location;
+    }
+
+
+    /**
+     * Returns the coordinates of the given location.
+     *
+     * @param location The location of the bitmap to convert.
+     * @return An (int, int) pair representing the coordinates of the supplied location.
+     */
+    public static int[] BitToCoordinate(int location)
+    {
+        int[] res = new int[2];
+
+        switch(location)
+        {
+            case 0:
+                res[0] = 0; res[1] = 0;
+                break;
+            case 1:
+                res[0] = 1; res[1] = 0;
+                break;
+            case 2:
+                res[0] = 2; res[1] = 0;
+                break;
+            case 3:
+                res[0] = 1; res[1] = 1;
+                break;
+            case 4:
+                res[0] = 2; res[1] = 1;
+                break;
+            case 5:
+                res[0] = 4; res[1] = 0;
+                break;
+            case 6:
+                res[0] = 4; res[1] = 1;
+                break;
+            case 7:
+                res[0] = 4; res[1] = 2;
+                break;
+            case 8:
+                res[0] = 3; res[1] = 0;
+                break;
+            case 9:
+                res[0] = 3; res[1] = 1;
+                break;
+            case 10:
+                res[0] = 4; res[1] = 4;
+                break;
+            case 11:
+                res[0] = 3; res[1] = 3;
+                break;
+            case 12:
+                res[0] = 2; res[1] = 2;
+                break;
+            case 13:
+                res[0] = 4; res[1] = 3;
+                break;
+            case 14:
+                res[0] = 3; res[1] = 2;
+                break;
+        }
+
+        return res;
     }
 
 
@@ -200,5 +272,67 @@ public class BoardUtils
             state = (state & ~((int)Math.pow(2, location)));
 
         return state;
+    }
+
+
+    /**
+     * Takes the state and applies a 'move' in the direction supplied, starting from the location.
+     * Importantly, this method applies no checks - it assumes the location is valid, there are enough
+     * steps (2) in the given direction to execute the move, and that the move itself is a valid move.
+     * These all need to be verified by other code before this method is called.
+     *
+     * @param state The current game state.
+     * @param location The 'starting position' for the move.
+     * @param direction The direction in which to make the move.
+     * @return The new game state.
+     */
+    public static int MakeMove(int state, int location, int direction)
+    {
+        for (int i = 0; i < 3; i ++)
+        {
+            state = Set(state, location, !Get(state, location));
+            location = Step(location, direction);
+        }
+        return state;
+    }
+
+
+    /**
+     * Returns a location on the bitmap one step in the direction supplied away from
+     * the provided location. If the step will take the location out of bounds, return -1.
+     *
+     * @param location The location to take the step from.
+     * @param direction The direction in which to move.
+     * @return The new location.
+     */
+    public static int Step(int location, int direction)
+    {
+        int [] coords = BitToCoordinate(location);
+
+        switch (direction)
+        {
+            case 1:
+                coords[0] ++;
+                break;
+            case 2:
+                coords[1] ++;
+                break;
+            case 3:
+                coords[0] ++;
+                coords[1] ++;
+                break;
+            case -1:
+                coords[0] --;
+                break;
+            case -2:
+                coords[1] --;
+                break;
+            case -3:
+                coords[0] --;
+                coords[1] --;
+                break;
+        }
+
+        return CoordinateToBit(coords[0], coords[1]);
     }
 }

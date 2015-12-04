@@ -8,7 +8,6 @@ public class TriangleGame
     public static void main(String[] args)
     {
         BoardUtils.Display(4235);
-        BoardUtils.Display(BoardUtils.Normalise(4235));
-        BoardUtils.Display(BoardUtils.Rotate(4235));
+        BoardUtils.Display(BoardUtils.MakeMove(4235, 3, 3));
     }
 }
