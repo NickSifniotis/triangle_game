@@ -1,6 +1,9 @@
 package GameEngine;
 
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * BoardUtils - This class contains a number of useful static methods for manipulating game board state
  * bitmaps within the TriangleGame application.
@@ -25,10 +28,10 @@ public class BoardUtils
         }
 
 //        System.out.println();
-//        for (int i = 0; i < 15; i ++)
+//        for (int i = 14; i >= 0; i --)
 //        {
 //            System.out.print(Get(state, i) ? "1" : "0");
-//            if (i % 5 == 4)
+//            if (i % 5 == 0)
 //                System.out.print(".");
 //        }
 
@@ -54,6 +57,7 @@ public class BoardUtils
         for (int i = 0; i < 2; i ++)
         {
             state = Rotate(state);
+
             if (state < res)
                 res = state;
             if (Reflect(state) < res)
@@ -72,7 +76,7 @@ public class BoardUtils
      */
     public static int Rotate(int state)
     {
-        int one_corner = (state & 0x002F) << 10;
+        int one_corner = (state & 0x001F) << 10;
         int working_state = state >>> 5;
 
         return one_corner + working_state;
@@ -252,7 +256,7 @@ public class BoardUtils
      * @param location The bit to get the state of.
      * @return True if the bit is set, False if the bit is not set.
      */
-    private static boolean Get(int state, int location)
+    public static boolean Get(int state, int location)
     {
         return ((state & (int)Math.pow(2, location)) != 0);
     }
@@ -264,7 +268,7 @@ public class BoardUtils
      * @param location The bit within the bitmap to set.
      * @param value The value to set it to.
      */
-    private static int Set(int state, int location, boolean value)
+    public static int Set(int state, int location, boolean value)
     {
         if (value)
             state = (state | (int)Math.pow(2, location));
@@ -334,5 +338,63 @@ public class BoardUtils
         }
 
         return CoordinateToBit(coords[0], coords[1]);
+    }
+
+
+    /**
+     * Returns an array of valid moves from the given location on the given board state.
+     * The returned values are the directions in which a valid move may be made.
+     * The array could be of any length between zero and six inclusive.
+     *
+     * @param state The current game state.
+     * @param location The location from which we are testing the validity of moves. It is a given that
+     *                 the bit that location represents is True - you cannot play a move from an empty peg.
+     * @return An array of directions that correspond to valid moves from this location.
+     */
+    public static int[] GetValidMoves(int state, int location)
+    {
+        List<Integer> res_list = new LinkedList<Integer>();
+        for (int i = 1; i < 4; i ++)
+        {
+            if (IsValidMove(state, location, i))
+                res_list.add(i);
+
+            if (IsValidMove(state, location, -i))
+                res_list.add(-i);
+        }
+
+        int[] res = new int[res_list.size()];
+        for (int i = 0; i < res.length; i ++)
+            res[i] = res_list.get(i);
+
+        return res;
+    }
+
+
+    /**
+     * Tests whether or not a move can be played in the direction given, from the location,
+     * on the supplied game state.
+     *
+     * A valid move would be - peg on this location, peg on location + step, empty on location+step+step
+     *
+     * @param state The game state being tested.
+     * @param location The location to play from
+     * @param direction The direction to make the move in
+     * @return True if a move can be played here, False otherwise.
+     */
+    public static boolean IsValidMove(int state, int location, int direction)
+    {
+        if (!Get(state, location))
+            return false;
+
+        if (Step(location, direction) == -1)
+            return false;
+        if (!Get(state, Step(location, direction)))
+            return false;
+
+        if (Step(Step(location, direction), direction) == -1)
+            return false;
+
+        return !Get(state, Step(Step(location, direction), direction));
     }
 }
