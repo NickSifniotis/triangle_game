@@ -37,14 +37,14 @@ public class TriangleGame
      * @param move_list The list of moves to reduce.
      * @return The reduced list.
      */
-    public static int[] ReduceMoves(int[] move_list)
+    public static StateTuple[] ReduceMoves(StateTuple[] move_list)
     {
         Map <Integer, Boolean> normalised_forms = new HashMap<Integer, Boolean>();
-        List<Integer> reduced_list = new LinkedList<Integer>();
+        List<StateTuple> reduced_list = new LinkedList<StateTuple>();
 
-        for (int move: move_list)
+        for (StateTuple move: move_list)
         {
-            int normal = BoardUtils.Normalise(move);
+            int normal = BoardUtils.Normalise(move.CurrentState);
             if (!normalised_forms.containsKey(normal))
             {
                 normalised_forms.put(normal, true);
@@ -52,11 +52,8 @@ public class TriangleGame
             }
         }
 
-        int[] res = new int[reduced_list.size()];
-        for (int i = 0; i < res.length; i ++)
-            res[i] = reduced_list.get(i);
-
-        return res;
+        StateTuple[] res = new StateTuple[reduced_list.size()];
+        return reduced_list.toArray(res);
     }
 
 
