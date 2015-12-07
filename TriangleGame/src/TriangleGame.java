@@ -1,35 +1,60 @@
 import GameEngine.BoardUtils;
+import GameEngine.StateTuple;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by nsifniotis on 3/12/15.
  */
 public class TriangleGame
 {
-    public static int[] GetAllMoves(int[] states)
+    public static StateTuple[] GetAllMoves(StateTuple[] states)
     {
-        List<Integer> moves = new LinkedList<Integer>();
-        for (int state: states)
+        List<StateTuple> moves = new LinkedList<StateTuple>();
+        for (StateTuple state: states)
         {
+            int curr_state = state.CurrentState;
             for (int i = 0; i < 15; i++)
             {
-                if (BoardUtils.Get(state, i))
+                if (BoardUtils.Get(curr_state, i))
                 {
-                    int[] move_hold = BoardUtils.GetValidMoves(state, i);
+                    int[] move_hold = BoardUtils.GetValidMoves(curr_state, i);
                     for (int direction : move_hold)
-                        moves.add(BoardUtils.MakeMove(state, i, direction));
+                        moves.add(new StateTuple(BoardUtils.MakeMove(curr_state, i, direction), curr_state));
                 }
             }
         }
 
-        int[] res = new int[moves.size()];
+        StateTuple[] res = new StateTuple[moves.size()];
+        return moves.toArray(res);
+    }
+
+
+    /**
+     * Goes through the unordered list of moves, acquires the normal form of the move,
+     * and adds to the results array only those moves whos normal forms have not been seen already.
+     *
+     * @param move_list The list of moves to reduce.
+     * @return The reduced list.
+     */
+    public static int[] ReduceMoves(int[] move_list)
+    {
+        Map <Integer, Boolean> normalised_forms = new HashMap<Integer, Boolean>();
+        List<Integer> reduced_list = new LinkedList<Integer>();
+
+        for (int move: move_list)
+        {
+            int normal = BoardUtils.Normalise(move);
+            if (!normalised_forms.containsKey(normal))
+            {
+                normalised_forms.put(normal, true);
+                reduced_list.add(move);
+            }
+        }
+
+        int[] res = new int[reduced_list.size()];
         for (int i = 0; i < res.length; i ++)
-            if (moves.get(i) != 0)
-                res[i] = moves.get(i);
+            res[i] = reduced_list.get(i);
 
         return res;
     }
@@ -72,21 +97,16 @@ public class TriangleGame
         int starting_state = 0x7FFF;
         starting_state = BoardUtils.Set(starting_state, 0, false);
 
-        int[] states = new int[1];
-        states[0] = starting_state;
+        StateTuple[] states = new StateTuple[1];
+        states[0] = new StateTuple(starting_state);
 
         for (int i = 0; i < 13; i ++)
         {
             // there can only be thirteen moves in a game.
-            System.out.println("Move: " + (i+1));
-            int[] moves = GetAllMoves(states);
-            states = NormaliseMoves(moves);
+            StateTuple[] moves = GetAllMoves(states);
+            states = ReduceMoves(moves);
 
-            for (int move : states)
-            {
-                System.out.println(Integer.toBinaryString(move));
-                BoardUtils.Display(move);
-            }
+            System.out.println("Move " + (i+1) + ": " + states.length);
         }
     }
 }
